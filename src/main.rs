@@ -1,6 +1,6 @@
 use std::fs::File;
 use std::io::{Read, Write};
-use std::path::{self, Path};
+use std::path;
 
 use key_manager::KeyManager;
 
@@ -8,6 +8,10 @@ mod encryptor;
 mod error;
 mod key_manager;
 mod utils;
+
+const HIDE_DIR: &str = "/home/marco/@personal/.me/fortify/phyo-birthday";
+const KEY_PATH: &str = "/home/marco/@personal/.me/fortify";
+const IGNORE_LIST: [&str; 5] = ["node_modules", "target", ".git", "dist", "build"];
 
 fn encrypt_file_contents(
     path: &path::Path,
@@ -34,12 +38,12 @@ fn encrypt_file_contents(
     }
 
     let mut fp = File::open(path).map_err(error::Error::IoError)?;
-    let mut buf = String::new();
+    let mut buf = Vec::new();
 
-    fp.read_to_string(&mut buf).map_err(error::Error::IoError)?;
+    fp.read_to_end(&mut buf).map_err(error::Error::IoError)?;
 
     let encryption = encryptor::Encryption::new();
-    let encrypted = encryption.encrypt(&key_manager.key, buf.as_bytes())?;
+    let encrypted = encryption.encrypt(&key_manager.key, &buf)?;
 
     let mut fp = File::options()
         .write(true)
@@ -59,6 +63,12 @@ fn decrypt_file_contents(
     ignore_list: &[&str],
 ) -> Result<(), error::Error> {
     if path.is_dir() {
+        if ignore_list.contains(&path.file_name().unwrap().to_str().unwrap()) {
+            println!("Skip: {}", path.display());
+
+            return Ok(());
+        }
+
         let paths = path.read_dir().map_err(error::Error::IoError)?;
 
         for path in paths {
@@ -94,16 +104,18 @@ fn decrypt_file_contents(
 }
 
 fn main() -> Result<(), error::Error> {
-    let path = path::Path::new("_test_dir");
-    let ignore_list = ["node_modules", "target"];
+    let args = std::env::args().collect::<Vec<String>>();
+    let is_retrieve_mode = args.get(1).map_or(false, |x| x == "--retrieve");
 
-    let key_manager = key_manager::KeyManager::from(Path::new("fish"));
-    let do_hide = true;
+    let path = path::Path::new(HIDE_DIR);
 
-    if do_hide {
-        encrypt_file_contents(&path, &key_manager, &ignore_list)?;
+    let key_manager =
+        key_manager::KeyManager::from(&path::PathBuf::from(&format!("{KEY_PATH}/.fish")));
+
+    if !is_retrieve_mode {
+        encrypt_file_contents(&path, &key_manager, &IGNORE_LIST)?;
     } else {
-        decrypt_file_contents(&path, &key_manager, &ignore_list)?;
+        decrypt_file_contents(&path, &key_manager, &IGNORE_LIST)?;
     }
 
     Ok(())
@@ -118,7 +130,7 @@ mod tests {
         let text = String::from("hello world");
         let encryption = encryptor::Encryption::new();
 
-        let key_manager = key_manager::KeyManager::new("fish");
+        let mut key_manager = key_manager::KeyManager::new(&format!("{KEY_PATH}/.fish"));
         key_manager.save_key().expect("Unable to save kay");
 
         let encrypted = encryption

@@ -1,3 +1,4 @@
+use std::ffi::OsStr;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path;
@@ -19,15 +20,24 @@ impl KeyManager {
         }
     }
 
-    pub fn save_key(&self) -> Result<(), error::Error> {
-        let mut buf = File::create(&self.name).map_err(error::Error::IoError)?;
+    pub fn save_key(&mut self) -> Result<(), error::Error> {
+        let path = path::Path::new(&self.name);
+        println!("{:?}", path);
+        let mut buf = File::create(&path).map_err(error::Error::IoError)?;
+
+        self.name = path
+            .file_name()
+            .unwrap_or(OsStr::new("new-key"))
+            .to_str()
+            .unwrap_or("new-key")
+            .to_string();
 
         buf.write_all(&self.key).map_err(error::Error::IoError)
     }
 }
 
-impl From<&path::Path> for KeyManager {
-    fn from(path: &path::Path) -> KeyManager {
+impl From<&path::PathBuf> for KeyManager {
+    fn from(path: &path::PathBuf) -> KeyManager {
         let mut buf = File::open(path).expect("Failed to read key file");
         let mut key = [0u8; 32];
 
