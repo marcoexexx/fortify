@@ -37,7 +37,7 @@ impl Encryption {
         let mut encryptor = Self::get_encryptor(&ctx.key);
 
         let mut final_result = Vec::new();
-        let mut read_buffer = crypto::buffer::RefReadBuffer::new(ctx.password.as_bytes());
+        let mut read_buffer = crypto::buffer::RefReadBuffer::new(ctx.ctx.as_bytes());
         let mut buffer = [0u8; 4096];
         let mut write_buffer = crypto::buffer::RefWriteBuffer::new(&mut buffer);
 
