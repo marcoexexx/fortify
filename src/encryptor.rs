@@ -1,4 +1,3 @@
-use crate::content::ContentManager;
 use crate::error;
 use crypto::aes::KeySize;
 use crypto::buffer::{BufferResult, ReadBuffer, WriteBuffer};
@@ -33,11 +32,11 @@ impl Encryption {
         decryptor
     }
 
-    pub fn encrypt(&self, ctx: &ContentManager) -> Result<Vec<u8>, error::Error> {
-        let mut encryptor = Self::get_encryptor(&ctx.key);
+    pub fn encrypt(&self, key: &[u8], data: &[u8]) -> Result<Vec<u8>, error::Error> {
+        let mut encryptor = Self::get_encryptor(key);
 
         let mut final_result = Vec::new();
-        let mut read_buffer = crypto::buffer::RefReadBuffer::new(ctx.ctx.as_bytes());
+        let mut read_buffer = crypto::buffer::RefReadBuffer::new(data);
         let mut buffer = [0u8; 4096];
         let mut write_buffer = crypto::buffer::RefWriteBuffer::new(&mut buffer);
 
@@ -56,8 +55,8 @@ impl Encryption {
         Ok(final_result)
     }
 
-    pub fn decrypt(&self, ctx: &ContentManager, data: &[u8]) -> Result<Vec<u8>, error::Error> {
-        let mut decryptor = Self::get_decryptor(&ctx.key);
+    pub fn decrypt(&self, key: &[u8], data: &[u8]) -> Result<Vec<u8>, error::Error> {
+        let mut decryptor = Self::get_decryptor(key);
 
         let mut final_result = Vec::new();
         let mut read_buffer = crypto::buffer::RefReadBuffer::new(data);
