@@ -9,8 +9,7 @@ mod error;
 mod key_manager;
 mod utils;
 
-const HIDE_DIR: &str = "";
-const KEY_PATH: &str = "";
+const KEY_FILE: &str = "/home/marco/@personal/.me/fortify/.fish";
 const IGNORE_LIST: [&str; 5] = ["node_modules", "target", ".git", "dist", "build"];
 
 fn encrypt_file_contents(
@@ -105,12 +104,13 @@ fn decrypt_file_contents(
 
 fn main() -> Result<(), error::Error> {
     let args = std::env::args().collect::<Vec<String>>();
-    let is_retrieve_mode = args.get(1).map_or(false, |x| x == "--retrieve");
 
-    let path = path::Path::new(HIDE_DIR);
+    let hide_dir = args.get(1).expect("Unable to get hide path");
+    let is_retrieve_mode = args.get(2).map_or(false, |x| x == "--retrieve");
 
-    let key_manager =
-        key_manager::KeyManager::from(&path::PathBuf::from(&format!("{KEY_PATH}/.fish")));
+    let path = path::Path::new(hide_dir);
+
+    let key_manager = key_manager::KeyManager::from(&path::PathBuf::from(KEY_FILE));
 
     if !is_retrieve_mode {
         encrypt_file_contents(&path, &key_manager, &IGNORE_LIST)?;
@@ -130,7 +130,7 @@ mod tests {
         let text = String::from("hello world");
         let encryption = encryptor::Encryption::new();
 
-        let mut key_manager = key_manager::KeyManager::new(&format!("{KEY_PATH}/.fish"));
+        let mut key_manager = key_manager::KeyManager::new(KEY_FILE);
         key_manager.save_key().expect("Unable to save kay");
 
         let encrypted = encryption
