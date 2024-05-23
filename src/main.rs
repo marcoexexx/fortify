@@ -9,8 +9,8 @@ mod error;
 mod key_manager;
 mod utils;
 
-const HIDE_DIR: &str = "/home/marco/@personal/.me/fortify/phyo-birthday";
-const KEY_PATH: &str = "/home/marco/@personal/.me/fortify";
+const HIDE_DIR: &str = "";
+const KEY_PATH: &str = "";
 const IGNORE_LIST: [&str; 5] = ["node_modules", "target", ".git", "dist", "build"];
 
 fn encrypt_file_contents(
