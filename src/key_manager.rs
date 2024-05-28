@@ -23,7 +23,7 @@ impl KeyManager {
     pub fn save_key(&mut self) -> Result<(), error::Error> {
         let path = path::Path::new(&self.name);
         println!("{:?}", path);
-        let mut buf = File::create(&path).map_err(error::Error::IoError)?;
+        let mut buf = File::create(&path)?;
 
         self.name = path
             .file_name()
@@ -32,7 +32,9 @@ impl KeyManager {
             .unwrap_or("new-key")
             .to_string();
 
-        buf.write_all(&self.key).map_err(error::Error::IoError)
+        buf.write_all(&self.key)?;
+
+        Ok(())
     }
 }
 

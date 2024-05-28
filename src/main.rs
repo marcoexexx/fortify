@@ -24,7 +24,7 @@ fn encrypt_file_contents(
             return Ok(());
         }
 
-        let paths = path.read_dir().map_err(error::Error::IoError)?;
+        let paths = path.read_dir()?;
 
         for path in paths {
             if let Ok(entry) = path {
@@ -36,20 +36,19 @@ fn encrypt_file_contents(
         return Ok(());
     }
 
-    let mut fp = File::open(path).map_err(error::Error::IoError)?;
+    let mut fp = File::open(path)?;
     let mut buf = Vec::new();
 
-    fp.read_to_end(&mut buf).map_err(error::Error::IoError)?;
+    fp.read_to_end(&mut buf)?;
 
     let encryption = encryptor::Encryption::new();
     let encrypted = encryption.encrypt(&key_manager.key, &buf)?;
 
     let mut fp = File::options()
         .write(true)
-        .open(path)
-        .map_err(error::Error::IoError)?;
+        .open(path)?;
 
-    fp.write_all(&encrypted).map_err(error::Error::IoError)?;
+    fp.write_all(&encrypted)?;
 
     println!("[ SUCCESS ]: success encryption");
 
@@ -68,7 +67,7 @@ fn decrypt_file_contents(
             return Ok(());
         }
 
-        let paths = path.read_dir().map_err(error::Error::IoError)?;
+        let paths = path.read_dir()?;
 
         for path in paths {
             if let Ok(entry) = path {
@@ -80,10 +79,10 @@ fn decrypt_file_contents(
         return Ok(());
     }
 
-    let mut fp = File::open(path).map_err(error::Error::IoError)?;
+    let mut fp = File::open(path)?;
     let mut buf = Vec::new();
 
-    fp.read_to_end(&mut buf).map_err(error::Error::IoError)?;
+    fp.read_to_end(&mut buf)?;
 
     let encryption = encryptor::Encryption::new();
     let decrypted = encryption.decrypt(&key_manager.key, &buf)?;
@@ -92,10 +91,9 @@ fn decrypt_file_contents(
         .write(true)
         .append(false)
         .truncate(true)
-        .open(path)
-        .map_err(error::Error::IoError)?;
+        .open(path)?;
 
-    fp.write_all(&decrypted).map_err(error::Error::IoError)?;
+    fp.write_all(&decrypted)?;
 
     println!("[ SUCCESS ]: success decryption");
 

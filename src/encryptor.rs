@@ -42,8 +42,7 @@ impl Encryption {
 
         loop {
             let result = encryptor
-                .encrypt(&mut read_buffer, &mut write_buffer, true)
-                .map_err(error::Error::CryptoError)?;
+                .encrypt(&mut read_buffer, &mut write_buffer, true)?;
             final_result.extend(write_buffer.take_read_buffer().take_remaining().iter());
 
             match result {
@@ -65,8 +64,7 @@ impl Encryption {
 
         loop {
             let result = decryptor
-                .decrypt(&mut read_buffer, &mut write_buffer, true)
-                .map_err(error::Error::CryptoError)?;
+                .decrypt(&mut read_buffer, &mut write_buffer, true)?;
             final_result.extend(write_buffer.take_read_buffer().take_remaining().iter());
 
             match result {
